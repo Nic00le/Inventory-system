@@ -1,0 +1,173 @@
+<template>
+    <form @submit.prevent="submitRecords">
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="inputEmail4">Title</label>
+                <input type="text" class="form-control" id="Title" v-model="records.title">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="inputPassword4">Category</label>
+                <select id="Category" class="form-control" v-model="records.category">
+                    <option selected>Open this select menu</option>
+                    <option value="Action">Action</option>
+                    <option value="Comedy">Comedy</option>
+                    <option value="Drama">Fantasy</option>
+                    <option value="Horror">Horror</option>
+                    <option value="Mystery">Mystery</option>
+                    <option value="Romance">Romance</option>
+                    <option value="Thriller">Thriller</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="inputEmail4">Author</label>
+                <input type="text" class="form-control" id="Author" v-model="records.author">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="inputPassword4">Publisher</label>
+                <input type="text" class="form-control" id="Publisher" v-model="records.publisher">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="inputEmail4">Year</label>
+                <input type="text" class="form-control" id="Year" v-model="records.year">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="inputPassword4">Location</label>
+                <input type="text" class="form-control" id="Location" v-model="records.location">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="inputEmail4">ISBN</label>
+                <input type="text" class="form-control" id="ISBN" v-model="records.isbn">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="inputPassword4">Image</label>
+                <input type="text" class="form-control" id="Image" v-model="records.image">
+            </div>
+        </div>
+        <div class="row">
+            <div class="form-group col-md-6">
+                <label for="inputEmail4">Descriptions</label>
+                <input type="text" class="form-control" id="Descriptions" v-model="records.descriptions">
+            </div>
+            <div class="form-group col-md-6">
+                <label for="inputPassword4">Remarks</label>
+                <input type="text" class="form-control" id="Remarks" v-model="records.remarks">
+            </div>
+        </div>
+        <button v-if="newRecord == true" type="submit" class="btn btn-primary">Save</button>
+    </form>
+    <div v-if="$route.params.id">
+        <button @click.prevent="updateRecords" class="btn btn-primary">Save</button>
+        <button @click.prevent="deleteRecords" class="btn btn-danger">Delete</button>
+    </div>
+</template>
+<script>
+import { ref, onMounted } from "vue";
+
+export default {
+    name: 'BookForm',
+    props: {
+        id: String,
+        newRecord: Boolean
+    },
+    setup(props) {
+        const records = ref({});
+
+        onMounted(async () => {
+            if (props.id) {
+                var response = await fetch("/api/records/" + props.id)
+
+                if (response.ok) {
+                    records.value = await response.json();
+                }
+            }
+        });
+
+        const submitRecords = async function () {
+            records.value.type = "books";
+
+            // event.preventDefault();
+
+            var response = await fetch("/api/book/detail/", {
+                method: "post",
+                headers: {
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json'
+                },
+
+                // body: new URLSearchParams(new FormData(event.target))
+                body: JSON.stringify(records.value)
+            });
+            console.log(records.value)
+            if (response.ok) {
+
+                var text = await response.text();
+                alert(text);
+                // location.assign("/bookings")
+            } else {
+                alert(response.statusText)
+            }
+
+        }
+
+        const updateRecords = async function () {
+            delete records.value._id;
+
+            var response = await fetch("/api/record/update/" + props.id, {
+                method: "put",
+                headers: {
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json'
+                },
+
+                // body: new URLSearchParams(new FormData(event.target))
+                body: JSON.stringify(records.value)
+            });
+            console.log(records.value)
+            if (response.ok) {
+
+                var text = await response.text();
+                alert(text);
+                // location.assign("/bookings")
+            } else {
+                alert(response.statusText)
+            }
+        }
+
+        const deleteRecords = async function () {
+
+            var response = await fetch("/api/record/delete/" + props.id, {
+                method: "delete",
+                headers: {
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json'
+                }
+
+                // body: new URLSearchParams(new FormData(event.target))
+                // body: JSON.stringify(records.value)
+            });
+            if (response.ok) {
+
+                // var text = await response.text();
+                alert("Booking is deleted");
+                // location.assign("/bookings")
+            } else {
+                alert(response.statusText)
+            }
+        }
+
+
+        return {
+            submitRecords,
+            deleteRecords,
+            updateRecords,
+            records
+        }
+    }
+}
+</script>
